@@ -1,0 +1,22 @@
+{
+  "name": "rck",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "\"Anton Kholodkov\" khanton@yandex.ru",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "minimist": "^1.2.0",
+    "moment": "^2.22.1",
+    "mongoose": "^5.1.2",
+    "nats": "^0.8.10"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1"
+  }
+}
