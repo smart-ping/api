@@ -1,4 +1,5 @@
-import mongoose from 'mongoose'
+'use strict'
+const mongoose = require('mongoose')
 const mongoUrl= 'mongodb://localhost/checks'
 
 const mongo = mongoose.connect(mongoUrl)
@@ -15,13 +16,25 @@ const checkSchema = mongoose.Schema({
         min: 0,
         max: 300
     },
-    createdAt: {
-        type: Date,
-        default: Date.now()
-    },
     deletedAt: {
         type: Date,
         default: null
+    }},{
+    timestamps: {
+        createdAt: 'createdAt' 
+    }
+})
+
+const periodicSchema = mongoose.Schema({
+    check: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: checkSchema, 
+        required: true,
+        index: true,
+    },
+    next: {
+        type: Date,
+        required: true
     }
 })
 
@@ -43,7 +56,9 @@ const logSchema = mongoose.Schema({
     }
 })
 
-
-export const Check = mongoose.model('Check', checkSchema)
-export const Log = mongoose.model('Log', logSchema)
+module.exports = {
+    Check: mongoose.model('Check', checkSchema),
+    Log: mongoose.model('Log', logSchema),
+    Periodic: mongoose.model('Periodic', periodicSchema)
+}
 

@@ -1,8 +1,12 @@
-import mnats from 'nats'
-import queue from './queue'
-import { Check, Log } from './mongo'
-import { setTimeout } from 'timers';
-import mongoose from 'mongoose'
+const mnats = require('nats')
+const mongoose = require('mongoose')
+const queue = require('./queue')
+const models = require('./mongo')
+const Schedule = require('./schedule')
+
+const Log = models.Log,
+    Check = models.Check,
+    Periodic = models.Periodic
 
 const nats = mnats.connect(queue.connect)
 
@@ -18,18 +22,13 @@ nats.subscribe(queue.ping_out, msg => {
     log.save()
 })
 
-function periodical() {
-    Check.find({ deleteAt: null }).then((docs) => {
-        docs.forEach((doc)=> {
-            var job = {
-                url: doc.url,
-                interval: doc.interval,
-                id: doc._id
-            }
-            nats.publish(queue.ping_in,JSON.stringify(job))
-        })
+const Sched = new Schedule()
+
+Sched.addAllToPeriodic()
+
+setInterval(function () {
+    console.log('scan')
+    Sched.scheduleBatch(10, (periodic) => {
+        console.log(periodic)
     })
-}   
-
-
-setInterval(periodical, 10000)
+}, 10000)
