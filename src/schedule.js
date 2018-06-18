@@ -38,7 +38,6 @@ class Schedule {
                 Check.findById(periodic.check).then(check => {
                     periodic.next = new Date(start.getTime() + check.interval * msPerMinutes)
                     periodic.save()
-                    console.log(periodic)
                     _cb(check)
                 })
             })
