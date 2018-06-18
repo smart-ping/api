@@ -38,12 +38,12 @@ class Schedule {
                 Check.findById(periodic.check).then(check => {
                     periodic.next = new Date(start.getTime() + check.interval * msPerMinutes)
                     periodic.save()
-                    _cb(periodic)
+                    console.log(periodic)
+                    _cb(check)
                 })
             })
         })
     }
 }
-
 
 module.exports = Schedule

@@ -1,6 +1,6 @@
-import axios from 'axios'
+const axios = require('axios')
 
-export default function http_check(url) {
+module.exports = function http_check(url) {
     return new Promise((resolve, reject) => {
         const start = process.hrtime()
         axios.get(url)

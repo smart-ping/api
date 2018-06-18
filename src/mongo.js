@@ -53,6 +53,12 @@ const logSchema = mongoose.Schema({
     },
     status : {
         type: String
+    },
+    duration: {
+        type: Number
+    },
+    downloadSize: {
+        type: Number
     }
 })
 

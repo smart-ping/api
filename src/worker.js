@@ -1,27 +1,25 @@
-import mnats from 'nats'
-import queue from './queue'
-import axios from 'axios'
-import http_check from './checker_http'
+const queue = require('./queue')
+const http_check = require('./checker_phantomjs')
+const nats = require('nats').connect({ url: queue.connect, json: true })
 
-const nats = mnats.connect(queue.connect)
-
-nats.subscribe(queue.ping_in, (msg) => {
-    const check = JSON.parse(msg)
+nats.subscribe(queue.ping_in, { queue: 'phantom.worker' }, async function (msg) {
 
     const data = {
-        id: check.id,
-        date: Date.now()
+        id: msg.id,
+        date: new Date()
     }
 
-    http_check(check.url)
-    .then( response => {
-        console.log(`Success check ${check.url} for ${check.id}`)
-        data.status = 'Ok'
-        nats.publish(queue.ping_out, JSON.stringify(data))
-    })
-    .catch( error => {
-       // console.log(`Fail check ${check.url} for ${check.id}`)
-        data.status = 'Fail'
-        nats.publish(queue.ping_out, JSON.stringify(data))
-    })
+    status = await http_check(msg.url)
+    data.status = status.status
+
+    data.duration = 0
+    data.downloadSize = 0
+
+    if (data.status == 'Ok') {
+        data.duration = status.duration
+        data.downloadSize = status.downloadSize
+    }
+
+    nats.publish(queue.ping_out, data)
+    console.log(data.date.toLocaleString('ru-RU'), `Check url='${msg.url}', id='${msg.id}', status='${data.status}'`)
 })

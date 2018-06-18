@@ -1,4 +1,3 @@
-const mnats = require('nats')
 const mongoose = require('mongoose')
 const queue = require('./queue')
 const models = require('./mongo')
@@ -8,16 +7,15 @@ const Log = models.Log,
     Check = models.Check,
     Periodic = models.Periodic
 
-const nats = mnats.connect(queue.connect)
+const nats = require('nats').connect({ url: queue.connect, json: true })
 
 nats.subscribe(queue.ping_out, msg => {
-
-    const message = JSON.parse(msg)
-
     const log = new Log({
-        parent: mongoose.Types.ObjectId(message.id),
-        date: new Date(message.date),
-        status: message.status
+        parent: mongoose.Types.ObjectId(msg.id),
+        date: new Date(msg.date),
+        status: msg.status,
+        duration: msg.duration,
+        downloadSize: msg.downloadSize
     })
     log.save()
 })
@@ -27,8 +25,11 @@ const Sched = new Schedule()
 Sched.addAllToPeriodic()
 
 setInterval(function () {
-    console.log('scan')
-    Sched.scheduleBatch(10, (periodic) => {
-        console.log(periodic)
+    console.log('.')
+    Sched.scheduleBatch(1, (check) => {
+        nats.publish(queue.ping_in, {
+            url: check.url,
+            id: check._id
+        })
     })
 }, 10000)
