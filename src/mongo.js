@@ -62,9 +62,24 @@ const logSchema = mongoose.Schema({
     }
 })
 
+const userSchema = mongoose.Schema({
+    email: {
+        type: String,
+        required: true,
+        index: true,
+        unique: true 
+    },
+    password:
+    {
+        type: String,
+        required: true
+    }
+})
+
 module.exports = {
     Check: mongoose.model('Check', checkSchema),
     Log: mongoose.model('Log', logSchema),
-    Periodic: mongoose.model('Periodic', periodicSchema)
+    Periodic: mongoose.model('Periodic', periodicSchema),
+    User: mongoose.model('User',userSchema)
 }
 

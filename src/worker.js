@@ -1,3 +1,4 @@
+'use strict'
 const queue = require('./queue')
 const http_check = require('./checker_phantomjs')
 const nats = require('nats').connect({ url: queue.connect, json: true })

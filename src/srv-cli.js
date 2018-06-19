@@ -1,3 +1,4 @@
+'use strict'
 const minimist = require('minimist')
 const models = require('./mongo')
 
