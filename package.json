@@ -19,6 +19,6 @@
     "mongoose": "^5.1.2",
     "morgan": "^1.9.0",
     "nats": "^0.8.10",
-    "phantom-pool": "^1.2.2"
+    "phantomjs-prebuilt": "^2.1.16"
   }
 }

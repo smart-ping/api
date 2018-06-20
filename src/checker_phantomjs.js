@@ -1,5 +1,5 @@
 'use strict'
-const phantom = require('phantom')
+const phantom = require('phantomjs-prebuilt')
 const moment = require('moment')
 
 async function check(url) {
