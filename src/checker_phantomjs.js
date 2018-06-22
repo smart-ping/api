@@ -1,21 +1,21 @@
 'use strict'
-const phantom = require('phantomjs-prebuilt')
+const phantom = require('phantom')
 const moment = require('moment')
 
 async function check(url) {
 
     const instance = await phantom.create()
     const page = await instance.createPage()
+    let metrika = {
+        resource:[]
+    }
 
-    await page.property('onLoadStarted', function () {
-        this.metrika = {
-            startAt: new Date(),
-            resource: []
-        }
+    await page.on('onLoadStarted', function () {
+        metrika.startAt = new Date();
     });
 
-    await page.property('onResourceRequested', function (data) {
-        this.metrika.resource.push({
+    await page.on('onResourceRequested', function (data) {
+        metrika.resource.push({
             id: data.id,
             requestAt: new Date(),
             req: data,
@@ -24,10 +24,10 @@ async function check(url) {
         })
     });
 
-    await page.property('onResourceReceived', function (data) {
+    await page.on('onResourceReceived', function (data) {
 
         var index = -1
-        this.metrika.resource.forEach(function (elem, idx) {
+        metrika.resource.forEach(function (elem, idx) {
             if (elem.id == data.id) {
                 index = idx
                 return false
@@ -38,14 +38,14 @@ async function check(url) {
             return
 
         if (data.stage == 'end') {
-            this.metrika.resource[index].end = data
+            metrika.resource[index].end = data
         } else if (data.stage == 'start') {
-            this.metrika.resource[index].start = data
+            metrika.resource[index].start = data
         }
     })
 
-    await page.property('onLoadFinished', function (status) {
-        this.metrika.finishAt = new Date()
+    await page.on('onLoadFinished', function (status) {
+        metrika.finishAt = new Date()
     })
 
     const status = await page.open(url, { operation: 'GET' })
@@ -56,14 +56,14 @@ async function check(url) {
         throw new Error('cannot open')
     }
 
-    const metrika = await page.property('metrika')
+//    const metrika = await page.property('metrika')
 
     await instance.exit()
 
     return metrika
 }
 
-module.exports = async function (url) {
+async function check_full (url) {
     try {
         const metrika = await check(url)
 
@@ -94,3 +94,9 @@ module.exports = async function (url) {
         }
     }
 }
+
+module.exports = check_full
+
+/*check_full('http://www.yandex.ru').then( res => {
+    console.log(res)
+})*/

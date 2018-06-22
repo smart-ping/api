@@ -3,6 +3,7 @@
 ``` docker-compose up -d ```
   2. Проверяем что все хорошо. Идем на localhost:8081 там висит админка monga. На localhost:8222 висит nats но там смотреть нечего.
   3. ``` npm i; npm i npx -g```
+  3. ```sudo apt install libfontconfig1```
   3. Запускаем в одной консоле server в другой client (при чем клиентов может быть много)
   4. Добавляем новый хост ``` ./srv-cli check add --url http://www.microsoft.com --interval 5 ```
   5. Должно начатся тестирование хостов
