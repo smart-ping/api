@@ -20,10 +20,16 @@ module.exports = ({ models, express, bcrypt, jwt, jwtToken, cors }) => {
     //     preflightContinue: true
     // }
 
+    var options = {
+        origin: true,
+        methods: ['POST'],
+        credentials: true,
+        maxAge: 3600
+    }
+    
+    routes.options('/login', cors(options))
 
-    // routes.options('/login', cors(corsOptPf))
-
-    routes.post('/login', async function (req, res) {
+    routes.post('/login', cors(options), async function (req, res) {
         const email = req.body.email
         const password = req.body.password
         console.log('1')
