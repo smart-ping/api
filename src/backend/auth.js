@@ -1,47 +1,22 @@
 'use strict'
+
 module.exports = ({ models, express, bcrypt, jwt, jwtToken, cors }) => {
     const routes = express.Router()
-
-    // const corsOpt = {
-    //     optionsSuccessStatus: 200,
-    //     origin: true,
-    //     methods: ['POST'],
-    //     credentials: false,
-    //     maxAge: 10,
-    // //    preflightContinue: true
-    // }
-
-    // const corsOptPf = {
-    //     optionsSuccessStatus: 200,
-    //     origin: true,
-    //     methods: ['POST'],
-    //     credentials: true,
-    //     maxAge: 10,
-    //     preflightContinue: true
-    // }
-
-    var options = {
-        origin: true,
-        methods: ['POST'],
-        credentials: true,
-        maxAge: 3600
-    }
     
-    routes.options('/login', cors(options))
+    routes.options('*', cors())
 
-    routes.post('/login', cors(options), async function (req, res) {
+    routes.post('/login', cors(), async function (req, res) {
         const email = req.body.email
         const password = req.body.password
-        console.log('1')
 
         if (!email || !password)
             return res.status(400).json({ type: 'error', message: 'email and password fields are essential for authentication.' })
 
         const users = await models.User.find({ email: email })
-        console.log('2')
+        
         if (users.length == 0)
-            return res.status(403).json({ type: 'error', message: 'User with provided email not found in database.' })
-        console.log('3')
+            return res.status(403).json({ type: 'error', message: 'Неверный email или пароль' })
+        
         const user = users[0]
 
         if (await bcrypt.compare(password, user.password)) {
@@ -52,11 +27,11 @@ module.exports = ({ models, express, bcrypt, jwt, jwtToken, cors }) => {
                 token: jwt.sign({ id: user._id, email: user.email }, jwtToken, { expiresIn: '7d' })
             })
         } else {
-            return res.status(403).json({ type: 'error', message: 'Password is incorrect.' })
+            return res.status(403).json({ type: 'error', message: 'Неверный email или пароль' })
         }
     })
 
-    routes.get('/me', async function (req, res) {
+    routes.get('/me', cors(), async function (req, res) {
 
         const token = req.headers['x-access-token']
 

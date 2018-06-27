@@ -1,15 +1,41 @@
 'use strict'
 const mongoose = require('mongoose')
-const mongoUrl= 'mongodb://localhost/checks'
+const mongoUrl = 'mongodb://localhost/checks'
 
 const mongo = mongoose.connect(mongoUrl)
 
-const checkSchema = mongoose.Schema({
-    url: {
-        type: String, 
-        required:true,
+const userSchema = mongoose.Schema({
+    email: {
+        type: String,
+        required: true,
         index: true,
-        unique: true 
+        unique: true
+    },
+    password:
+    {
+        type: String,
+        required: true
+    }
+}, {
+        timestamps: {
+            createdAt: 'createdAt'
+        }
+
+})
+
+const checkSchema = mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: userSchema,
+        required: true,
+        index: true,
+        unique: false
+    },
+    url: {
+        type: String,
+        required: true,
+        index: true,
+        unique: false
     },
     interval: {
         type: Number,
@@ -19,16 +45,17 @@ const checkSchema = mongoose.Schema({
     deletedAt: {
         type: Date,
         default: null
-    }},{
-    timestamps: {
-        createdAt: 'createdAt' 
     }
-})
+}, {
+        timestamps: {
+            createdAt: 'createdAt'
+        }
+    })
 
 const periodicSchema = mongoose.Schema({
     check: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: checkSchema, 
+        ref: checkSchema,
         required: true,
         index: true,
     },
@@ -41,7 +68,7 @@ const periodicSchema = mongoose.Schema({
 const logSchema = mongoose.Schema({
     parent: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: checkSchema, 
+        ref: checkSchema,
         required: true,
         index: true,
     },
@@ -51,7 +78,7 @@ const logSchema = mongoose.Schema({
         default: Date.now(),
         required: true
     },
-    status : {
+    status: {
         type: String
     },
     duration: {
@@ -62,24 +89,10 @@ const logSchema = mongoose.Schema({
     }
 })
 
-const userSchema = mongoose.Schema({
-    email: {
-        type: String,
-        required: true,
-        index: true,
-        unique: true 
-    },
-    password:
-    {
-        type: String,
-        required: true
-    }
-})
-
 module.exports = {
     Check: mongoose.model('Check', checkSchema),
     Log: mongoose.model('Log', logSchema),
     Periodic: mongoose.model('Periodic', periodicSchema),
-    User: mongoose.model('User',userSchema)
+    User: mongoose.model('User', userSchema)
 }
 
