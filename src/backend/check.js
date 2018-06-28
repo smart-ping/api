@@ -32,7 +32,7 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
                     interval: element.interval
                 })
             })
-            res.json({ type: 'success', response: response })
+            res.json({ type: 'success', checks: response })
         } catch (error) {
             return status(400).json({ type: 'error', message: 'Unknown server error.', error })
         }
