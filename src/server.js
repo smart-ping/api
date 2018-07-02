@@ -17,7 +17,7 @@ nats.subscribe(queue.ping_out, async function(msg) {
 
         if (check) {
             if ( check.online != online ) {
-                event = new models.Event({
+                const event = new models.Event({
                     statusUp: online,
                     user: check.parent
                 })
