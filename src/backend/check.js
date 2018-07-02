@@ -3,13 +3,11 @@
 module.exports = ({ models, express, jwt, jwtToken, cors }) => {
     const routes = express.Router()
 
-    routes.options('*', cors())
-
     routes.use(async function (req, res, next) {
 
-        const token = req.headers['x-access-token']
+        const token = req.cookies['x-access-token']
 
-        if (!token) return res.status(400).json({ type: 'error', message: 'x-access-token header not found.' })
+        if (!token) return res.status(400).json({ type: 'error', message: 'x-access-token cookie not found.' })
 
         try {
             req.user = await jwt.verify(token, jwtToken)
@@ -20,7 +18,7 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
         }
     })
 
-    routes.get('/checks', cors(), async function (req, res) {
+    routes.get('/checks', async function (req, res) {
 
         try {
             const checks = await models.Check.find({ user: req.user.id, deletedAt: null })
@@ -29,7 +27,8 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
                 response.push({
                     id: element._id,
                     url: element.url,
-                    interval: element.interval
+                    interval: element.interval,
+                    online: element.online
                 })
             })
             res.json({ type: 'success', checks: response })

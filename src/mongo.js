@@ -45,6 +45,10 @@ const checkSchema = mongoose.Schema({
     deletedAt: {
         type: Date,
         default: null
+    },
+    online: {
+        type: Boolean,
+        default: true
     }
 }, {
         timestamps: {
@@ -89,10 +93,27 @@ const logSchema = mongoose.Schema({
     }
 })
 
+const eventSchema = mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: checkSchema,
+        required: true,
+        index: true,
+    },
+    statusUp: {
+        type: Boolean 
+    }
+},{
+    timestamps: {
+        createdAt: 'createdAt'
+    }
+})
+
 module.exports = {
     Check: mongoose.model('Check', checkSchema),
     Log: mongoose.model('Log', logSchema),
     Periodic: mongoose.model('Periodic', periodicSchema),
-    User: mongoose.model('User', userSchema)
+    User: mongoose.model('User', userSchema),
+    Event: mongoose.model('Event', eventSchema),
 }
 

@@ -1,9 +1,9 @@
 'use strict'
 const queue = require('./queue')
-const http_check = require('./checker_phantomjs')
+const http_check = require('./checker_http')
 const nats = require('nats').connect({ url: queue.connect, json: true })
 
-nats.subscribe(queue.ping_in, { queue: 'phantom.worker' }, async function (msg) {
+nats.subscribe(queue.ping_in, { queue: 'http.worker' }, async function (msg) {
 
     const data = {
         id: msg.id,

@@ -8,14 +8,17 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
 const morgan = require('morgan')
-const cors = require('cors');
+const cors = require('cors')
+const cookieParser = require('cookie-parser')
 
 const auth = require('./auth')
 const check = require('./check')
 
 const app = express()
 
-app.use(morgan('combined'));
+app.use(morgan('combined'))
+
+app.use(cookieParser())
 
 app.use(bodyParser.json())
 

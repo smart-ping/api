@@ -5,20 +5,41 @@ const models = require('./mongo')
 const Schedule = require('./schedule')
 
 const Log = models.Log,
-    Check = models.Check,
-    Periodic = models.Periodic
+    Check = models.Check
 
 const nats = require('nats').connect({ url: queue.connect, json: true })
 
-nats.subscribe(queue.ping_out, msg => {
-    const log = new Log({
-        parent: mongoose.Types.ObjectId(msg.id),
-        date: new Date(msg.date),
-        status: msg.status,
-        duration: msg.duration,
-        downloadSize: msg.downloadSize
-    })
-    log.save()
+nats.subscribe(queue.ping_out, async function(msg) {
+ 
+    try {
+        const check = await Check.findById(msg.id)
+        const online = (msg.status == 'Ok')
+
+        if (check) {
+            if ( check.online != online ) {
+                event = new models.Event({
+                    statusUp: online,
+                    user: check.parent
+                })
+                await event.save()
+            }
+            check.online = online
+            await check.save()
+        }
+
+        const log = new Log({
+            parent: mongoose.Types.ObjectId(msg.id),
+            date: new Date(msg.date),
+            status: msg.status,
+            duration: msg.duration,
+            downloadSize: msg.downloadSize
+        })
+
+        await log.save()
+
+    } catch (error) {
+        console.log('Error:', error)
+    }
 })
 
 const Sched = new Schedule()
