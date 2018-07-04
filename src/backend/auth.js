@@ -51,9 +51,10 @@ module.exports = ({ models, express, bcrypt, jwt, jwtToken, cors }) => {
         }
     })
 
-    routes.post('/register', async function (req, res) {
+    routes.post('/register', cors(), async function (req, res) {
         const email = req.body.email
         const password = req.body.password
+
         if (!email || !password) return res.status(400).json({ type: 'error', message: 'email and password fields are essential for registration.' })
 
         const newUser = new models.User({
@@ -63,13 +64,20 @@ module.exports = ({ models, express, bcrypt, jwt, jwtToken, cors }) => {
 
         try {
             await newUser.save()
-            res.json({ type: 'success', id: newUser._id })
+
+            res.json({
+                type: 'success', id: newUser._id,
+                message: 'User registered and logged in.',
+                user: { id: newUser._id, email: newUser.email },
+                token: jwt.sign({ id: newUser._id, email: newUser.email }, jwtToken, { expiresIn: '7d' })
+            })
+
         }
         catch (e) {
             if (e.name == 'MongoError' && e.code == 11000) {
-                res.status(400).json({ type: 'error', message: 'email already exist' })
+                res.status(400).json({ type: 'error', message: 'Пользователь с таким email уже существует' })
             } else {
-                res.status(400).json({ type: 'error' })
+                res.status(400).json({ type: 'error', message: 'Ошибка сервера' })
             }
         }
     })
