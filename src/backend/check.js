@@ -40,7 +40,7 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
     routes.post('/checks', cors(), async function (req, res) {
 
         if (!req.body.url || !req.body.interval)
-            return res.status(400).json({ type: 'error', message: 'url and interval fields are essential for authentication.' })
+            return res.status(400).json({ type: 'error', message: 'Для создания проверки нужен url и интервал' })
 
         try {
             var check = new models.Check({
@@ -59,6 +59,10 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
         catch (error) {
             res.status(403).json({ type: 'error', message: 'Create error.', error })
         }
+    })
+
+    routes.get('/checks/:id', cors(), async function (req, res) {
+        const id = req.params.id
     })
 
     return routes
