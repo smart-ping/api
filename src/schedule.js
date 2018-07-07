@@ -1,6 +1,8 @@
 'use strict'
 const _ = require('lodash')
 const models = require('./mongo')
+const moment = require('moment')
+var colors = require('colors/safe')
 
 const Log = models.Log,
     Check = models.Check,
@@ -26,22 +28,35 @@ class Schedule {
         })
     }
 
-    scheduleBatch(_interval, _cb) {
-        const start = new Date()
-        const end = new Date(start.getTime() + _interval * 10000)
-        Periodic.find({
+    async scheduleBatch(_interval, _cb) {
+        const start = moment()
+        const end = moment().add(_interval,'ms')
+
+        console.log( start.format('DD.MM.YYYY HH:mm:ss'),'-', end.format('DD.MM.YYYY HH:mm:ss'))
+        
+        const periodic_list = await Periodic.find({ 
             next: {
-                $lt: end
+                $lt: end.toDate()
             }
-        }).then(periodic_list => {
-            periodic_list.forEach((periodic) => {
-                Check.findById(periodic.check).then(check => {
-                    periodic.next = new Date(start.getTime() + check.interval * msPerMinutes)
-                    periodic.save()
-                    _cb(check)
-                })
-            })
         })
+
+        periodic_list.forEach(async function (periodic) {
+            const check = await Check.findById(periodic.check)
+
+            console.log(colors.cyan(check.url), colors.yellow(check.interval), moment(periodic.next).format('DD.MM.YYYY HH:mm:ss'),colors.cyan('->'), 
+                moment(periodic.next).add(check.interval,'m').format('DD.MM.YYYY HH:mm:ss'))
+
+            const delay = moment(periodic.next).diff(moment())
+            
+            periodic.next = moment(periodic.next).add(check.interval,'m').toDate()
+            await periodic.save()
+
+            setTimeout(function () {
+                _cb(check)
+            }, delay)
+            
+        })
+            
     }
 }
 

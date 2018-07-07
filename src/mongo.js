@@ -31,6 +31,11 @@ const checkSchema = mongoose.Schema({
         index: true,
         unique: false
     },
+    title: {
+        type: String,
+        required: true,
+        unique: false
+    },
     url: {
         type: String,
         required: true,
@@ -70,7 +75,7 @@ const periodicSchema = mongoose.Schema({
 })
 
 const logSchema = mongoose.Schema({
-    parent: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: checkSchema,
         required: true,

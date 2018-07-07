@@ -26,6 +26,7 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
             checks.forEach(element => {
                 response.push({
                     id: element._id,
+                    title: element.title,
                     url: element.url,
                     interval: element.interval,
                     online: element.online
@@ -43,13 +44,21 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
             return res.status(400).json({ type: 'error', message: 'Для создания проверки нужен url и интервал' })
 
         try {
-            var check = new models.Check({
+            const check = new models.Check({
                 user: req.user.id,
+                title: req.body.title,
                 url: req.body.url,
                 interval: req.body.interval
             })
 
             const result = await check.save()
+        
+            const periodic = new models.Periodic({ 
+                check: check._id, 
+                next: new Date()
+            })
+
+            await periodic.save()
 
             res.json({
                 type: 'success',
@@ -61,8 +70,14 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
         }
     })
 
-    routes.get('/checks/:id', cors(), async function (req, res) {
+    routes.get('/checks/chk/:id', cors(), async function (req, res) {
         const id = req.params.id
+        res.json({type:'success', id: id})
+    })
+
+    routes.get('/checks/evt/:id', cors(), async function (req, res) {
+        const id = req.params.id
+        res.json({type:'success', id: id})
     })
 
     return routes
