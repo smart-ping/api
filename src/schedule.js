@@ -4,59 +4,49 @@ const models = require('./mongo')
 const moment = require('moment')
 var colors = require('colors/safe')
 
-const Log = models.Log,
-    Check = models.Check,
-    Periodic = models.Periodic
-
-const msPerMinutes = 60000
-
 class Schedule {
 
-    constructor() {
-    }
-
-    addAllToPeriodic() {
-        Check.find({ deletedAt: null }).then(check_res => {
-            check_res.forEach((check) => {
-                Periodic.findOne({ check: check._id }).then(periodic => {
-                    if (periodic == null) {
-                        const NewPeriodic = new Periodic({ check: check._id, next: new Date((new Date()).getTime() + check.interval * msPerMinutes) })
-                        NewPeriodic.save()
-                    }
-                })
-            })
-        })
-    }
-
     async scheduleBatch(_interval, _cb) {
-        const start = moment()
-        const end = moment().add(_interval,'ms')
+        const end = moment().add(_interval,'ms') // До какого момента будем сканировать
 
-        console.log( start.format('DD.MM.YYYY HH:mm:ss'),'-', end.format('DD.MM.YYYY HH:mm:ss'))
+        console.log( moment().format('DD.MM.YYYY [HH:mm:ss'),'-', end.format('HH:mm:ss]')) 
         
-        const periodic_list = await Periodic.find({ 
+        const periodic_list = await models.Periodic.find({ 
             next: {
                 $lt: end.toDate()
             }
         })
 
         periodic_list.forEach(async function (periodic) {
-            const check = await Check.findById(periodic.check)
+            const check = await models.Check.findById(periodic.check)
 
-            console.log(colors.cyan(check.url), colors.yellow(check.interval), moment(periodic.next).format('DD.MM.YYYY HH:mm:ss'),colors.cyan('->'), 
-                moment(periodic.next).add(check.interval,'m').format('DD.MM.YYYY HH:mm:ss'))
+            var next = moment(periodic.next).add(check.interval,'m') // новый момент для запуска
 
-            const delay = moment(periodic.next).diff(moment())
-            
-            periodic.next = moment(periodic.next).add(check.interval,'m').toDate()
+            if (next < moment()) { // новый момент в прошлом
+                next = moment().add(check.interval,'m') // пересчитаем от теущего момента
+            }  
+
+            const delay = moment(periodic.next).diff(moment())  // уточняем когда точно надо будет послать событие
+
+            console.log(colors.cyan(check.url), 
+                colors.yellow(check.interval), 
+                moment(periodic.next).format('DD.MM.YYYY HH:mm:ss'),colors.cyan('->'), 
+                moment(next).format('DD.MM.YYYY HH:mm:ss'), 
+                (delay < 0 ) ? colors.red(delay) : colors.green(delay)
+            )
+
+            periodic.next = next
             await periodic.save()
 
-            setTimeout(function () {
+            if (delay > 0) {            // если можем корретируем точность исполнения
+                setTimeout(function () {
+                    _cb(check)
+                }, delay)
+            }
+            else {
                 _cb(check)
-            }, delay)
-            
+            }
         })
-            
     }
 }
 

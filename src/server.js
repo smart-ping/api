@@ -41,8 +41,6 @@ nats.subscribe(queue.ping_out, async function(msg) {
 
 const Sched = new Schedule()
 
-Sched.addAllToPeriodic()
-
 setInterval(function () {
     Sched.scheduleBatch(5000, (check) => {
         nats.publish(queue.ping_in, {
