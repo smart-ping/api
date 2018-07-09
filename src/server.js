@@ -16,7 +16,7 @@ nats.subscribe(queue.ping_out, async function(msg) {
             if ( check.online != online ) {
                 const event = new models.Event({
                     statusUp: online,
-                    user: check.user
+                    check: mongoose.Types.ObjectId(msg.id)
                 })
                 await event.save()
             }
@@ -25,7 +25,7 @@ nats.subscribe(queue.ping_out, async function(msg) {
         }
 
         const log = new models.Log({
-            user: mongoose.Types.ObjectId(msg.id),
+            check: mongoose.Types.ObjectId(msg.id),
             date: new Date(msg.date),
             status: msg.status,
             duration: msg.duration,

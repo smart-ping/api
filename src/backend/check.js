@@ -1,5 +1,13 @@
 'use strict'
 
+const mongoose = require('mongoose')
+
+function getBool(str) {
+    const lo = str.toLowerCase()
+
+    return ((lo == 'true') || (lo == 'yes')) 
+}
+
 module.exports = ({ models, express, jwt, jwtToken, cors }) => {
     const routes = express.Router()
 
@@ -52,9 +60,9 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
             })
 
             const result = await check.save()
-        
-            const periodic = new models.Periodic({ 
-                check: check._id, 
+
+            const periodic = new models.Periodic({
+                check: check._id,
                 next: new Date()
             })
 
@@ -70,14 +78,76 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
         }
     })
 
-    routes.get('/checks/chk/:id', cors(), async function (req, res) {
-        const id = req.params.id
-        res.json({type:'success', id: id})
+    routes.get('/checks/log/:id', cors(), async function (req, res) {
+
+        var options = {}
+
+        var query = {
+            check: mongoose.Types.ObjectId(req.params.id)
+        }
+
+        try {
+            const offset = Number.parseInt(req.query.offset)
+            const limit = Number.parseInt(req.query.limit)
+
+            if (limit)
+                options.limit = limit
+            if (offset)
+                options.skip = offset
+
+            var from = req.query.from
+            var to = req.query.to
+
+            if (to) {
+                query.date = {
+                    $gte: from ? new Date(from) : new Date(),
+                    $lt: new Date(to)
+                }
+            } else {
+                if (from) {
+                    query.date = {
+                        $gte: new Date(from)
+                    }
+                }
+            }
+
+        } catch (error) {
+            res.status(404).json({ status: 'error', error: 'Invalid params.' })
+        }
+
+        try {
+            if (req.query.onlycount && getBool(req.query.onlycount)) {
+
+                res.json({
+                    type: 'success',
+                    count: await models.Log.count(query)
+                })
+
+            } else {
+                const recs = await models.Log.find(query, null, options)
+
+                var result = []
+
+                recs.forEach(item => {
+                    result.push({
+                        id: item._id,
+                        date: item.date,
+                        status: item.status,
+                        duration: item.duration,
+                        downloadSize: item.downloadSize
+                    })
+                })
+
+                res.json({ type: 'success', log: result })
+            }
+        } catch (error) {
+            res.status(404).json({ type: 'error', error: error })
+        }
     })
 
     routes.get('/checks/evt/:id', cors(), async function (req, res) {
         const id = req.params.id
-        res.json({type:'success', id: id})
+        res.json({ type: 'success', id: id })
     })
 
     return routes

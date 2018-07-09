@@ -75,7 +75,7 @@ const periodicSchema = mongoose.Schema({
 })
 
 const logSchema = mongoose.Schema({
-    user: {
+    check: {
         type: mongoose.Schema.Types.ObjectId,
         ref: checkSchema,
         required: true,
@@ -85,7 +85,8 @@ const logSchema = mongoose.Schema({
     {
         type: Date,
         default: Date.now(),
-        required: true
+        required: true,
+        index: true
     },
     status: {
         type: String
@@ -99,7 +100,7 @@ const logSchema = mongoose.Schema({
 })
 
 const eventSchema = mongoose.Schema({
-    user: {
+    check: {
         type: mongoose.Schema.Types.ObjectId,
         ref: checkSchema,
         required: true,
