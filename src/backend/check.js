@@ -78,6 +78,11 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
         }
     })
 
+    routes.delete('/checks/:id', cors(), async function (req, res) {
+
+
+    })
+
     routes.get('/checks/log/:id', cors(), async function (req, res) {
 
         var options = {}
