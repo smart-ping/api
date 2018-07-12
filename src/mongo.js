@@ -1,10 +1,18 @@
 'use strict'
 const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+
 const mongoUrl = 'mongodb://localhost/checks'
 
-const mongo = mongoose.connect(mongoUrl)
+const mongo = mongoose.connect(mongoUrl).then(() => {
+    console.log('mongodb connected to:', mongoUrl)
+})
+.catch(err => {
+    console.log('mongodb connect error:', err)
+    process.exit(200)
+})
 
-const userSchema = mongoose.Schema({
+const userSchema = Schema({
     email: {
         type: String,
         required: true,
@@ -23,9 +31,9 @@ const userSchema = mongoose.Schema({
 
 })
 
-const checkSchema = mongoose.Schema({
+const checkSchema = Schema({
     user: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: userSchema,
         required: true,
         index: true,
@@ -61,9 +69,9 @@ const checkSchema = mongoose.Schema({
         }
     })
 
-const periodicSchema = mongoose.Schema({
+const periodicSchema = Schema({
     check: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: checkSchema,
         required: true,
         index: true,
@@ -74,9 +82,9 @@ const periodicSchema = mongoose.Schema({
     }
 })
 
-const logSchema = mongoose.Schema({
+const logSchema = Schema({
     check: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: checkSchema,
         required: true,
         index: true,
@@ -99,9 +107,9 @@ const logSchema = mongoose.Schema({
     }
 })
 
-const eventSchema = mongoose.Schema({
+const eventSchema = Schema({
     check: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: checkSchema,
         required: true,
         index: true,

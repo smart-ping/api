@@ -145,6 +145,56 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
         }
     })
 
+    routes.get('/checks/stat/:id', cors(), async function (req, res, next) {
+
+        var options = {}
+
+        var match = {
+            check: mongoose.Types.ObjectId(req.params.id)
+        }
+
+        try {
+            const from = new Date(req.query.from)
+            const to = new Date(req.query.to)
+
+            if (to) {
+                match.date = {
+                    $gte: from ? from : new Date(),
+                    $lt: to
+                }
+            } else {
+                if (from) {
+                    match.date = {
+                        $gte: from.toISOString()
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error(error)
+            res.status(404).json({ status: 'error', error: 'Invalid params.' }).end()
+            return
+        }
+
+        try {
+
+            const agg = [
+                { $match: match }
+            ]
+
+            console.log(JSON.stringify(agg, null, ' '))
+
+
+            const recs = await models.Log.aggregate(agg)
+
+            res.json({ type: 'success', data: recs  })
+            
+        } catch (error) {
+            console.error(error)
+            res.status(404).json({ type: 'error', error: error })
+        }
+    })
+
     routes.get('/checks/evt/:id', cors(), async function (req, res) {
         const id = req.params.id
         res.json({ type: 'success', id: id })
