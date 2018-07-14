@@ -55,10 +55,6 @@ const checkSchema = Schema({
         min: 0,
         max: 300
     },
-    deletedAt: {
-        type: Date,
-        default: null
-    },
     online: {
         type: Boolean,
         default: true

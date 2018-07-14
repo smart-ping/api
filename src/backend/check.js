@@ -29,7 +29,7 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
     routes.get('/checks', async function (req, res) {
 
         try {
-            const checks = await models.Check.find({ user: req.user.id, deletedAt: null })
+            const checks = await models.Check.find({ user: req.user.id })
             var response = []
             checks.forEach(element => {
                 response.push({
@@ -80,7 +80,23 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
 
     routes.delete('/checks/:id', cors(), async function (req, res) {
 
+        if (!req.params.id)
+        {
+            res.sendStatus(404).json({ type: 'error', error: 'Нужен id для удаления' })
+        }
 
+        try {
+            await models.Check.findByIdAndRemove(req.params.id)
+            await models.Periodic.deleteMany( { check: req.params.id })
+            await models.Log.deleteMany( { check: req.params.id })
+            await models.Event.deleteMany( { check: req.params.id })
+            
+            res.json({ type: 'success' })
+
+        } catch (error) {
+            console.log(error)
+            res.status(404).json({ type: 'error', error: error })
+        }
     })
 
     routes.get('/checks/log/:id', cors(), async function (req, res) {
