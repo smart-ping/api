@@ -116,24 +116,24 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
             if (offset)
                 options.skip = offset
 
-            var from = req.query.from
-            var to = req.query.to
+            const from = new Date(req.query.from)
+            const to = new Date(req.query.to)
 
             if (to) {
                 query.date = {
-                    $gte: from ? new Date(from) : new Date(),
-                    $lt: new Date(to)
+                    $gte: from ? from : new Date(),
+                    $lt: to
                 }
             } else {
                 if (from) {
                     query.date = {
-                        $gte: new Date(from)
+                        $gte: from
                     }
                 }
             }
-
         } catch (error) {
-            res.status(404).json({ status: 'error', error: 'Invalid params.' })
+            res.status(404).json({ status: 'error', error: 'Invalid params.' }).end()
+            return
         }
 
         try {
@@ -186,7 +186,7 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
             } else {
                 if (from) {
                     match.date = {
-                        $gte: from.toISOString()
+                        $gte: from
                     }
                 }
             }
@@ -202,6 +202,8 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
             const agg = [
                 { $match: match }
             ]
+
+
 
             console.log(JSON.stringify(agg, null, ' '))
 
