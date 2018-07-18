@@ -174,6 +174,9 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
             check: mongoose.Types.ObjectId(req.params.id)
         }
 
+        var _id = {} 
+        var _sort = {}       
+
         try {
             const from = new Date(req.query.from)
             const to = new Date(req.query.to)
@@ -191,22 +194,73 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
                 }
             }
 
+            switch(req.query.aggregate)
+            {
+                case 'minute':
+                    _id = {
+                        minute: { $minute: "$date" },
+                        hour: { $hour: "$date" },
+                        day: { $dayOfMonth: "$date" },
+                        month: { $month: "$date" },
+                        year: { $year: "$date" }
+                    }
+                    _sort = {
+                        "_id.year": 1,
+                        "_id.month": 1,
+                        "_id.day": 1,
+                        "_id.hour": 1,
+                        "_id.minute": 1
+                    }
+                break
+                case 'hour':
+                    _id = {
+                        hour: { $hour: "$date" },
+                        day: { $dayOfMonth: "$date" },
+                        month: { $month: "$date" },
+                        year: { $year: "$date" }
+                    }
+                    _sort = {
+                        "_id.year": 1,
+                        "_id.month": 1,
+                        "_id.day": 1,
+                        "_id.hour": 1,
+                    }
+                break
+                case 'day':
+                    _id = {
+                        day: { $dayOfMonth: "$date" },
+                        month: { $month: "$date" },
+                        year: { $year: "$date" }
+                    }
+                    _sort = {
+                        "_id.year": 1,
+                        "_id.month": 1,
+                        "_id.day": 1,
+                    }
+
+                break
+                default:
+                {
+                    throw new Error('Неверное значение параметра aggregate (minute, hour, day)')
+                }
+            }
+
         } catch (error) {
             console.error(error)
             res.status(404).json({ status: 'error', error: 'Invalid params.' }).end()
             return
         }
-
         try {
 
             const agg = [
-                { $match: match }
+                { $match: match },
+                { $group: {
+                    "_id": _id,
+                    avg: { $avg: "$duration" }
+                } },
+                { $sort: _sort }
             ]
-
-
-
-            console.log(JSON.stringify(agg, null, ' '))
-
+        //    console.log(JSON.stringify(agg, null, ' '))
 
             const recs = await models.Log.aggregate(agg)
 
