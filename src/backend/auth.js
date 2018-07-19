@@ -38,6 +38,7 @@ module.exports = ({ models, express, bcrypt, jwt, jwtToken, cors }) => {
         if (!token) return res.status(400).json({ type: 'error', message: 'x-access-token header not found.' })
 
         try {
+            //TODO: Проверить наличие пользователя в базе. Бывает случай когда пользователя в базе нет а он может зайти в систему.
             const result = await jwt.verify(token, jwtToken)
 
             return res.json({
