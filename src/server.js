@@ -6,6 +6,14 @@ const Schedule = require('./schedule')
 
 const nats = require('nats').connect({ url: queue.connect, json: true })
 
+nats.on('connect', nc => {
+    console.log('nats connected to:', nc.currentServer.url.href)
+})
+
+nats.on('error', nc => {
+    console.log('nats connect error:', nc.currentServer.url.href)
+})
+
 nats.subscribe(queue.ping_out, async function(msg) {
  
     try {

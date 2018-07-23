@@ -1,0 +1,7 @@
+node_modules
+npm-debug.log
+data
+docker-compose.yml
+README.md
+TODO.md
+Dockerfile

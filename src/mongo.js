@@ -1,14 +1,13 @@
 'use strict'
+const config = require('../config')
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const mongoUrl = 'mongodb://localhost/checks'
-
-const mongo = mongoose.connect(mongoUrl).then(() => {
-    console.log('mongodb connected to:', mongoUrl)
+const mongo = mongoose.connect(config.mongourl).then(() => {
+    console.log('mongodb connected to:', config.mongourl)
 })
 .catch(err => {
-    console.log('mongodb connect error:', err)
+    console.log('mongodb connect error:', config.mongourl, err.message)
     process.exit(200)
 })
 
