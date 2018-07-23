@@ -3,10 +3,10 @@ services:
   nats:
     container_name: nats
     image: nats:latest
-    ports:
-      - 4222:4222
-      - 8222:8222 
-      - 6222:6222
+  #  ports:
+  #    - 4222:4222
+  #    - 8222:8222 
+  #    - 6222:6222
 
   mongo:
     container_name: mongo
@@ -18,18 +18,18 @@ services:
       - MONGODB_PASS=1234
     volumes:
       - ./data/db:/data/db
-    ports:
-        - 27017:27017
+  #  ports:
+  #      - 27017:27017
     command: mongod --smallfiles --logpath=/dev/null
 
-  mongo-express:
-    container_name: mongo-express
-    image: mongo-express:latest
-    depends_on:
-      - mongo
-    ports:
-      - 8081:8081
-    restart: always
+#  mongo-express:
+#    container_name: mongo-express
+#    image: mongo-express:latest
+#    depends_on:
+#      - mongo
+#    ports:
+#      - 8081:8081
+#    restart: always
   
   api:
     container_name: api
@@ -40,8 +40,8 @@ services:
     depends_on:
       - mongo
       - nats
-    ports: 
-      - 8080:8080
+  #  ports: 
+  #    - 8080:8080
     environment:
       - MONGO_URL=mongodb://mongo:27017/checks
       - NATS_URL=nats://nats:4222
@@ -70,4 +70,19 @@ services:
       - MONGO_URL=mongodb://mongo:27017/checks
       - NATS_URL=nats://nats:4222
     entrypoint: npm run worker
+    restart: always
+  
+  front:
+    container_name: front
+    image: front
+    depends_on:
+      - mongo
+      - nats
+      - api
+    ports: 
+      - 3000:3000
+    environment:
+      - API_AUTH_URL=http://api:8080
+      - API_DATA_URL=http://api:8080
+      - HOST=0.0.0.0
     restart: always
