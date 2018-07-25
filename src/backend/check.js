@@ -239,9 +239,20 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
                     }
 
                 break
+                case 'week':
+                    _id = {
+                        month: { $month: "$date" },
+                        year: { $year: "$date" }
+                    }
+                    _sort = {
+                        "_id.month": 1,
+                        "_id.day": 1,
+                    }
+                break
+
                 default:
                 {
-                    throw new Error('Неверное значение параметра aggregate (minute, hour, day)')
+                    throw new Error('Неверное значение параметра aggregate (minute, hour, day, week)')
                 }
             }
 

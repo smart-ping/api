@@ -1,0 +1,32 @@
+version: '3'
+services:
+  nats:
+    container_name: nats
+    image: nats:latest
+    ports:
+      - 4222:4222
+      - 8222:8222 
+      - 6222:6222
+
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+      - MONGODB_USER=root 
+      - MONGODB_PASS=1234
+    volumes:
+      - ./data/db:/data/db
+    ports:
+      - 27017:27017
+    command: mongod --smallfiles --logpath=/dev/null
+
+  mongo-express:
+   container_name: mongo-express
+   image: mongo-express:latest
+   depends_on:
+     - mongo
+   ports:
+     - 8081:8081
+   restart: always
