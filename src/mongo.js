@@ -30,6 +30,32 @@ const userSchema = Schema({
 
 })
 
+const eventSchema = Schema({
+    check: {
+        type: Schema.Types.ObjectId,
+        ref: 'Check',
+        required: true,
+        index: true,
+    },
+    online: {
+        type: Boolean 
+    },
+    finish:
+    {
+        type: Date,
+        default: null
+    },
+    duration:
+    {
+        type: Number
+    }
+
+},{
+    timestamps: {
+        createdAt: 'start'
+    }
+})
+
 const checkSchema = Schema({
     user: {
         type: Schema.Types.ObjectId,
@@ -53,6 +79,11 @@ const checkSchema = Schema({
         type: Number,
         min: 0,
         max: 300
+    },
+    event: {
+        type: Schema.Types.ObjectId,
+        ref: eventSchema,
+        index: true
     },
     online: {
         type: Boolean,
@@ -82,7 +113,13 @@ const logSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: checkSchema,
         required: true,
-        index: true,
+        index: true
+    },
+    event: {
+        type: Schema.Types.ObjectId,
+        ref: eventSchema,
+        required: true,
+        index: true
     },
     date:
     {
@@ -92,29 +129,14 @@ const logSchema = Schema({
         index: true
     },
     status: {
-        type: String
+        type: String,
+        required: true
     },
     duration: {
         type: Number
     },
     downloadSize: {
         type: Number
-    }
-})
-
-const eventSchema = Schema({
-    check: {
-        type: Schema.Types.ObjectId,
-        ref: checkSchema,
-        required: true,
-        index: true,
-    },
-    statusUp: {
-        type: Boolean 
-    }
-},{
-    timestamps: {
-        createdAt: 'createdAt'
     }
 })
 
