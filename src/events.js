@@ -6,7 +6,8 @@ const models = require('./mongo')
 async function closeAndOpenEvent(checkId, eventId, online) {
 
     if (eventId) {
-        const event = models.Event.findById(eventId)
+
+        const event = await models.Event.findById(eventId)
         if (event) {
             event.finish = new Date()
             event.duration = event.finish - event.start
