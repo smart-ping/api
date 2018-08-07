@@ -1,12 +1,8 @@
 'use strict'
 
 const mongoose = require('mongoose')
-
-function getBool(str) {
-    const lo = str.toLowerCase()
-
-    return ((lo == 'true') || (lo == 'yes')) 
-}
+const checklog = require('./check-log')
+const checklogstat = require('./check-logstat')
 
 module.exports = ({ models, express, jwt, jwtToken, cors }) => {
     const routes = express.Router()
@@ -19,6 +15,7 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
 
         try {
             req.user = await jwt.verify(token, jwtToken)
+            req.models = models
             next()
         }
         catch (error) {
@@ -98,190 +95,10 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
             res.status(404).json({ type: 'error', error: error })
         }
     })
-
-    routes.get('/checks/log/:id', cors(), async function (req, res) {
-
-        var options = {}
-
-        var query = {
-            check: mongoose.Types.ObjectId(req.params.id)
-        }
-
-        try {
-            const offset = Number.parseInt(req.query.offset)
-            const limit = Number.parseInt(req.query.limit)
-
-            if (limit)
-                options.limit = limit
-            if (offset)
-                options.skip = offset
-
-            const from = new Date(req.query.from)
-            const to = new Date(req.query.to)
-
-            if (to) {
-                query.date = {
-                    $gte: from ? from : new Date(),
-                    $lt: to
-                }
-            } else {
-                if (from) {
-                    query.date = {
-                        $gte: from
-                    }
-                }
-            }
-        } catch (error) {
-            res.status(404).json({ status: 'error', error: 'Invalid params.' }).end()
-            return
-        }
-
-        try {
-            if (req.query.onlycount && getBool(req.query.onlycount)) {
-
-                res.json({
-                    type: 'success',
-                    count: await models.Log.count(query)
-                })
-
-            } else {
-                const recs = await models.Log.find(query, null, options)
-
-                var result = []
-
-                recs.forEach(item => {
-                    result.push({
-                        id: item._id,
-                        date: item.date,
-                        status: item.status,
-                        duration: item.duration,
-                        downloadSize: item.downloadSize
-                    })
-                })
-
-                res.json({ type: 'success', log: result })
-            }
-        } catch (error) {
-            res.status(404).json({ type: 'error', error: error })
-        }
-    })
-
-    routes.get('/checks/stat/:id', cors(), async function (req, res, next) {
-
-        var options = {}
-
-        var match = {
-            check: mongoose.Types.ObjectId(req.params.id)
-        }
-
-        var _id = {} 
-        var _sort = {}       
-
-        try {
-            const from = new Date(req.query.from)
-            const to = new Date(req.query.to)
-
-            if (to) {
-                match.date = {
-                    $gte: from ? from : new Date(),
-                    $lt: to
-                }
-            } else {
-                if (from) {
-                    match.date = {
-                        $gte: from
-                    }
-                }
-            }
-
-            switch(req.query.aggregate)
-            {
-                case 'minute':
-                    _id = {
-                        minute: { $minute: "$date" },
-                        hour: { $hour: "$date" },
-                        day: { $dayOfMonth: "$date" },
-                        month: { $month: "$date" },
-                        year: { $year: "$date" }
-                    }
-                    _sort = {
-                        "_id.year": 1,
-                        "_id.month": 1,
-                        "_id.day": 1,
-                        "_id.hour": 1,
-                        "_id.minute": 1
-                    }
-                break
-                case 'hour':
-                    _id = {
-                        hour: { $hour: "$date" },
-                        day: { $dayOfMonth: "$date" },
-                        month: { $month: "$date" },
-                        year: { $year: "$date" }
-                    }
-                    _sort = {
-                        "_id.year": 1,
-                        "_id.month": 1,
-                        "_id.day": 1,
-                        "_id.hour": 1,
-                    }
-                break
-                case 'day':
-                    _id = {
-                        day: { $dayOfMonth: "$date" },
-                        month: { $month: "$date" },
-                        year: { $year: "$date" }
-                    }
-                    _sort = {
-                        "_id.year": 1,
-                        "_id.month": 1,
-                        "_id.day": 1,
-                    }
-
-                break
-                case 'week':
-                    _id = {
-                        month: { $month: "$date" },
-                        year: { $year: "$date" }
-                    }
-                    _sort = {
-                        "_id.month": 1,
-                        "_id.day": 1,
-                    }
-                break
-
-                default:
-                {
-                    throw new Error('Неверное значение параметра aggregate (minute, hour, day, week)')
-                }
-            }
-
-        } catch (error) {
-            console.error(error)
-            res.status(404).json({ status: 'error', error: 'Invalid params.' }).end()
-            return
-        }
-        try {
-
-            const agg = [
-                { $match: match },
-                { $group: {
-                    "_id": _id,
-                    avg: { $avg: "$duration" }
-                } },
-                { $sort: _sort }
-            ]
-        //    console.log(JSON.stringify(agg, null, ' '))
-
-            const recs = await models.Log.aggregate(agg)
-
-            res.json({ type: 'success', data: recs  })
-            
-        } catch (error) {
-            console.error(error)
-            res.status(404).json({ type: 'error', error: error })
-        }
-    })
+    
+    routes.get('/checks/log/:id', cors(), checklog)
+    
+    routes.get('/checks/stat/:id', cors(), checklogstat.bind(models))
 
     routes.get('/checks/evt/:id', cors(), async function (req, res) {
         const id = req.params.id
