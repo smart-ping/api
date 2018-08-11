@@ -3,6 +3,7 @@
 const mongoose = require('mongoose')
 const checklog = require('./check-log')
 const checklogstat = require('./check-logstat')
+const checkevt = require('./check-evt')
 
 module.exports = ({ models, express, jwt, jwtToken, cors }) => {
     const routes = express.Router()
@@ -97,13 +98,8 @@ module.exports = ({ models, express, jwt, jwtToken, cors }) => {
     })
     
     routes.get('/checks/log/:id', cors(), checklog)
-    
-    routes.get('/checks/stat/:id', cors(), checklogstat.bind(models))
-
-    routes.get('/checks/evt/:id', cors(), async function (req, res) {
-        const id = req.params.id
-        res.json({ type: 'success', id: id })
-    })
+    routes.get('/checks/stat/:id', cors(), checklogstat)
+    routes.get('/checks/evt/:id', cors(), checkevt)
 
     return routes
 }

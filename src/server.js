@@ -12,7 +12,7 @@ nats.on('connect', nc => {
 })
 
 nats.on('error', nc => {
-    console.log('nats connect error:', nc.currentServer.url.href)
+    console.log('nats connect error:', nc.currentServer)
 })
 
 nats.subscribe(queue.ping_out, events.saveStateMessage)
