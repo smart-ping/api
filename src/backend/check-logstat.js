@@ -12,7 +12,7 @@ module.exports = async function (req, res, next) {
     }
 
     var _id = {} 
-    var _sort = {}       
+    var _sort = { status: 'Ok' } // Агрегации можно делать только для записей успешной проверки
 
     try {
         const from = new Date(req.query.from)

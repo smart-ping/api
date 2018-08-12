@@ -130,7 +130,8 @@ const logSchema = Schema({
     },
     status: {
         type: String,
-        required: true
+        required: true,
+        index: true
     },
     duration: {
         type: Number
