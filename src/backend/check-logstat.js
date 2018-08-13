@@ -8,11 +8,12 @@ module.exports = async function (req, res, next) {
     var options = {}
 
     var match = {
-        check: mongoose.Types.ObjectId(req.params.id)
+        check: mongoose.Types.ObjectId(req.params.id),
+        status: 'Ok' // Агрегации можно делать только для записей успешной проверки 
     }
 
     var _id = {} 
-    var _sort = { status: 'Ok' } // Агрегации можно делать только для записей успешной проверки
+    var _sort = {} 
 
     try {
         const from = new Date(req.query.from)
@@ -108,6 +109,8 @@ module.exports = async function (req, res, next) {
             } },
             { $sort: _sort }
         ]
+
+    //    console.log(JSON.stringify(agg,null,' '))
 
         const recs = await req.models.Log.aggregate(agg)
 
