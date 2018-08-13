@@ -12,8 +12,8 @@ module.exports = async function (req, res, next) {
         status: 'Ok' // Агрегации можно делать только для записей успешной проверки 
     }
 
-    var _id = {} 
-    var _sort = {} 
+    var _id = {}
+    var _sort = {}
 
     try {
         const from = new Date(req.query.from)
@@ -32,15 +32,32 @@ module.exports = async function (req, res, next) {
             }
         }
 
-        switch(req.query.aggregate)
-        {
+        switch (req.query.aggregate) {
             case 'minute':
                 _id = {
-                    minute: { $minute: "$date" },
-                    hour: { $hour: "$date" },
-                    day: { $dayOfMonth: "$date" },
-                    month: { $month: "$date" },
-                    year: { $year: "$date" }
+                    minute: {
+                        $subtract: [{
+                                $minute: "$date"
+                            },
+                            {
+                                $mod: [{
+                                    $minute: "$date"
+                                }, 5]
+                            }
+                        ]
+                    },
+                    hour: {
+                        $hour: "$date"
+                    },
+                    day: {
+                        $dayOfMonth: "$date"
+                    },
+                    month: {
+                        $month: "$date"
+                    },
+                    year: {
+                        $year: "$date"
+                    }
                 }
                 _sort = {
                     "_id.year": 1,
@@ -49,13 +66,21 @@ module.exports = async function (req, res, next) {
                     "_id.hour": 1,
                     "_id.minute": 1
                 }
-            break
+                break
             case 'hour':
                 _id = {
-                    hour: { $hour: "$date" },
-                    day: { $dayOfMonth: "$date" },
-                    month: { $month: "$date" },
-                    year: { $year: "$date" }
+                    hour: {
+                        $hour: "$date"
+                    },
+                    day: {
+                        $dayOfMonth: "$date"
+                    },
+                    month: {
+                        $month: "$date"
+                    },
+                    year: {
+                        $year: "$date"
+                    }
                 }
                 _sort = {
                     "_id.year": 1,
@@ -63,12 +88,18 @@ module.exports = async function (req, res, next) {
                     "_id.day": 1,
                     "_id.hour": 1,
                 }
-            break
+                break
             case 'day':
                 _id = {
-                    day: { $dayOfMonth: "$date" },
-                    month: { $month: "$date" },
-                    year: { $year: "$date" }
+                    day: {
+                        $dayOfMonth: "$date"
+                    },
+                    month: {
+                        $month: "$date"
+                    },
+                    year: {
+                        $year: "$date"
+                    }
                 }
                 _sort = {
                     "_id.year": 1,
@@ -76,48 +107,68 @@ module.exports = async function (req, res, next) {
                     "_id.day": 1,
                 }
 
-            break
+                break
             case 'week':
                 _id = {
-                    month: { $month: "$date" },
-                    year: { $year: "$date" }
+                    month: {
+                        $month: "$date"
+                    },
+                    year: {
+                        $year: "$date"
+                    }
                 }
                 _sort = {
                     "_id.month": 1,
                     "_id.day": 1,
                 }
-            break
+                break
 
             default:
-            {
-                throw new Error('Неверное значение параметра aggregate (minute, hour, day, week)')
-            }
+                {
+                    throw new Error('Неверное значение параметра aggregate (minute, hour, day, week)')
+                }
         }
 
     } catch (error) {
         console.error(error)
-        res.status(404).json({ status: 'error', error: 'Invalid params.' }).end()
+        res.status(404).json({
+            status: 'error',
+            error: 'Invalid params.'
+        }).end()
         return
     }
     try {
 
-        const agg = [
-            { $match: match },
-            { $group: {
-                "_id": _id,
-                avg: { $avg: "$duration" }
-            } },
-            { $sort: _sort }
+        const agg = [{
+                $match: match
+            },
+            {
+                $group: {
+                    "_id": _id,
+                    avg: {
+                        $avg: "$duration"
+                    }
+                }
+            },
+            {
+                $sort: _sort
+            }
         ]
 
-    //    console.log(JSON.stringify(agg,null,' '))
+        console.log(JSON.stringify(agg, null, ' '))
 
         const recs = await req.models.Log.aggregate(agg)
 
-        res.json({ type: 'success', data: recs  })
-        
+        res.json({
+            type: 'success',
+            data: recs
+        })
+
     } catch (error) {
         console.error(error)
-        res.status(404).json({ type: 'error', error: error })
+        res.status(404).json({
+            type: 'error',
+            error: error
+        })
     }
 }
